@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Play, RotateCcw, Check } from 'lucide-react-native';
+import { Play, RotateCcw, Check, X } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 import { NotoSansTelugu_400Regular } from '@expo-google-fonts/noto-sans-telugu';
@@ -28,6 +28,7 @@ export default function HomeScreen() {
   const [currentDay, setCurrentDay] = useState(1);
   const [progress, setProgress] = useState<{ [key: number]: SentenceProgress }>({});
   const [showProgressPopup, setShowProgressPopup] = useState(false);
+  const [showBannerAd, setShowBannerAd] = useState(true);
 
   useEffect(() => {
     // Initialize progress for available sentences
@@ -110,10 +111,36 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
+      {/* Banner Ad */}
+      {showBannerAd && (
+        <View style={styles.bannerAdContainer}>
+          <TouchableOpacity 
+            style={styles.adCloseButton}
+            onPress={() => setShowBannerAd(false)}
+          >
+            <X size={16} color="#8E8E93" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.bannerAd}>
+            <Image 
+              source={{ uri: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=800&h=200&fit=crop' }}
+              style={styles.adImage}
+              resizeMode="cover"
+            />
+            <View style={styles.adOverlay}>
+              <Text style={styles.adTitle}>Learn Telugu Faster</Text>
+              <Text style={styles.adSubtitle}>Premium features • Ad-free experience</Text>
+              <View style={styles.adButton}>
+                <Text style={styles.adButtonText}>Upgrade Now</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Header */}
       <LinearGradient
         colors={['#2AA8A8', '#25999B']}
-        style={styles.header}
+        style={[styles.header, !showBannerAd && styles.headerWithoutAd]}
       >
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Telugu Daily</Text>
@@ -236,10 +263,75 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
+  bannerAdContainer: {
+    position: 'relative',
+    marginHorizontal: 16,
+    marginTop: 50,
+    marginBottom: 8,
+  },
+  adCloseButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 12,
+    padding: 4,
+  },
+  bannerAd: {
+    height: 120,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  adImage: {
+    width: '100%',
+    height: '100%',
+  },
+  adOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(42, 168, 168, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  adTitle: {
+    fontSize: 18,
+    fontFamily: 'Poppins-SemiBold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  adSubtitle: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    opacity: 0.9,
+    marginBottom: 12,
+  },
+  adButton: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  adButtonText: {
+    fontSize: 14,
+    fontFamily: 'Poppins-SemiBold',
+    color: '#2AA8A8',
+  },
   header: {
-    paddingTop: 60,
-    paddingBottom: 24,
+    paddingTop: 20,
+    paddingBottom: 20,
     paddingHorizontal: 20,
+  },
+  headerWithoutAd: {
+    paddingTop: 60,
   },
   headerContent: {
     flexDirection: 'row',
@@ -248,7 +340,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontFamily: 'Poppins-SemiBold',
     color: '#FFFFFF',
   },
@@ -258,11 +350,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Poppins-Regular',
     color: '#FFFFFF',
     opacity: 0.9,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -270,20 +362,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   progressRing: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   progressText: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Poppins-SemiBold',
     color: '#FFFFFF',
   },
   progressLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: 'Poppins-Regular',
     color: '#FFFFFF',
     opacity: 0.8,
@@ -292,12 +384,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   masteredCount: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: 'Poppins-SemiBold',
     color: '#FFFFFF',
   },
   masteredLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: 'Poppins-Regular',
     color: '#FFFFFF',
     opacity: 0.8,
