@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Play, ChevronDown, ChevronRight, Lock, Unlock } from 'lucide-react-native';
+import { Play, ChevronDown, ChevronRight, Lock, Clock as Unlock } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 import { NotoSansTelugu_400Regular } from '@expo-google-fonts/noto-sans-telugu';
@@ -191,8 +191,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   header: {
-    paddingTop: 36,
-    paddingBottom: 14,
+    paddingTop: 60,
+    paddingBottom: 24,
     paddingHorizontal: 20,
   },
   headerContent: {
