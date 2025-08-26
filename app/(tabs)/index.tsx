@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Play, RotateCcw, Check, X } from 'lucide-react-native';
+import { Play, Check } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 import { NotoSansTelugu_400Regular } from '@expo-google-fonts/noto-sans-telugu';
@@ -202,15 +202,7 @@ export default function HomeScreen() {
               
               <View style={styles.cardActions}>
                 <TouchableOpacity 
-                  style={[styles.actionButton, styles.repeatButton]}
-                  onPress={() => handleSentenceView(index)}
-                >
-                  <RotateCcw size={16} color="#E74C3C" />
-                  <Text style={styles.repeatButtonText}>Repeat</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={[styles.actionButton, styles.knowButton]}
+                  style={[styles.actionButton, styles.knowButton, styles.fullWidthButton]}
                   onPress={() => handleSentenceView(index)}
                 >
                   <Check size={16} color="#27AE60" />
@@ -423,10 +415,8 @@ const styles = StyleSheet.create({
   },
   cardActions: {
     flexDirection: 'row',
-    gap: 12,
   },
   actionButton: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -434,15 +424,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     gap: 6,
   },
-  repeatButton: {
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#E74C3C',
-  },
-  repeatButtonText: {
-    color: '#E74C3C',
-    fontFamily: 'Poppins-Medium',
-    fontSize: 14,
+  fullWidthButton: {
+    flex: 1,
   },
   knowButton: {
     backgroundColor: '#F0FDF4',
