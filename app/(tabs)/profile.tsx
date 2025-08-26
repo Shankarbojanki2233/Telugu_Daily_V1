@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { User, Settings, Volume2, Moon, Palette, Download, Star, Trophy, CircleHelp as HelpCircle } from 'lucide-react-native';
+import { User, Settings, Volume2, Moon, Palette, Trophy } from 'lucide-react-native';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -173,29 +173,6 @@ export default function ProfileScreen() {
               />
             </View>
 
-            <TouchableOpacity style={styles.settingItem}>
-              <View style={styles.settingLeft}>
-                <Download size={20} color="#2AA8A8" />
-                <Text style={styles.settingText}>Download Offline Content</Text>
-              </View>
-              <Text style={styles.settingValue}>Available</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.settingItem}>
-              <View style={styles.settingLeft}>
-                <Star size={20} color="#2AA8A8" />
-                <Text style={styles.settingText}>Rate the App</Text>
-              </View>
-              <Text style={styles.settingValue}>⭐⭐⭐⭐⭐</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.settingItem}>
-              <View style={styles.settingLeft}>
-                <HelpCircle size={20} color="#2AA8A8" />
-                <Text style={styles.settingText}>Help & Support</Text>
-              </View>
-              <Text style={styles.settingValue}>→</Text>
-            </TouchableOpacity>
           </View>
         </View>
 
