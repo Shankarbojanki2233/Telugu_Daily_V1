@@ -7,6 +7,7 @@ import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } 
 import { NotoSansTelugu_400Regular } from '@expo-google-fonts/noto-sans-telugu';
 import { sentences } from '@/data/sentences';
 import { useTheme } from '@/hooks/useTheme';
+import BannerAd from '@/components/BannerAd';
 
 interface SentenceProgress {
   id: number;
@@ -169,9 +170,11 @@ export default function HomeScreen() {
           const sentenceProgress = progress[actualIndex];
           const isCompleted = sentenceProgress?.completed || false;
           const isMastered = sentenceProgress?.mastered || false;
+          const shouldShowAd = (index + 1) % 10 === 0 && index < 40; // Show after 10th, 20th, 30th, 40th
           
           return (
-            <View key={index} style={[
+            <React.Fragment key={index}>
+              <View style={[
               styles.sentenceCard,
               isCompleted && styles.completedCard,
               isMastered && styles.masteredCard
@@ -215,9 +218,24 @@ export default function HomeScreen() {
                   Viewed {sentenceProgress.viewCount} time{sentenceProgress.viewCount !== 1 ? 's' : ''}
                 </Text>
               )}
-            </View>
+              </View>
+              
+              {/* Show banner ad after 10th, 20th, 30th, 40th sentences (positions 11, 21, 31, 41) */}
+              {((index + 1) === 10 || (index + 1) === 20 || (index + 1) === 30 || (index + 1) === 40) && (
+                <BannerAd 
+                  position={Math.floor((index + 1) / 10)}
+                  adUnitId={undefined} // TODO: Add your ad unit ID here
+                />
+              )}
+            </React.Fragment>
           );
         })}
+        
+        {/* Banner ad after the 50th sentence (position 51) */}
+        <BannerAd 
+          position={5} 
+          adUnitId={undefined} // TODO: Add your ad unit ID here
+        />
       </ScrollView>
     </View>
   );
