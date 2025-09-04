@@ -1,21 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Play, Check } from 'lucide-react-native';
+import { Play, RotateCcw, CheckCircle, Circle, Trophy, Target } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 import { NotoSansTelugu_400Regular } from '@expo-google-fonts/noto-sans-telugu';
-import { sentences } from '@/data/sentences';
+import { getSentencesByDay } from '@/data/sentences';
 import { useTheme } from '@/hooks/useTheme';
 import BannerAd from '@/components/BannerAd';
-
-interface SentenceProgress {
-  id: number;
-  viewCount: number;
-  completed: boolean;
-  mastered: boolean;
-  lastViewed: Date;
-}
 
 export default function HomeScreen() {
   let [fontsLoaded] = useFonts({
@@ -26,59 +18,13 @@ export default function HomeScreen() {
   });
 
   const { theme } = useTheme();
-  const [currentDay, setCurrentDay] = useState(1);
-  const [progress, setProgress] = useState<{ [key: number]: SentenceProgress }>({});
-  const [showProgressPopup, setShowProgressPopup] = useState(false);
-
-  useEffect(() => {
-    // Initialize progress for available sentences
-    const newProgress: { [key: number]: SentenceProgress } = {};
-    sentences.slice(0, getCurrentDayLimit()).forEach((_, index) => {
-      if (!progress[index]) {
-        newProgress[index] = {
-          id: index,
-          viewCount: 0,
-          completed: false,
-          mastered: false,
-          lastViewed: new Date(),
-        };
-      }
-    });
-    setProgress(prev => ({ ...prev, ...newProgress }));
-  }, [currentDay]);
-
-  const getCurrentDayLimit = () => currentDay * 50;
-  const getTodaysSentences = () => {
-    const startIndex = (currentDay - 1) * 50;
-    const endIndex = currentDay * 50;
-    return sentences.slice(startIndex, endIndex);
-  };
-
-  const handleSentenceView = (index: number) => {
-    const actualIndex = (currentDay - 1) * 50 + index;
-    setProgress(prev => {
-      const current = prev[actualIndex] || {
-        id: actualIndex,
-        viewCount: 0,
-        completed: false,
-        mastered: false,
-        lastViewed: new Date(),
-      };
-      
-      const newViewCount = current.viewCount + 1;
-      return {
-        ...prev,
-        [actualIndex]: {
-          ...current,
-          viewCount: newViewCount,
-          completed: true,
-          mastered: newViewCount >= 2,
-          lastViewed: new Date(),
-        }
-      };
-    });
-
-  };
+  const [currentDay] = useState(5);
+  const [completedSentences, setCompletedSentences] = useState<{ [key: number]: boolean }>({});
+  const [masteredSentences, setMasteredSentences] = useState<{ [key: number]: boolean }>({});
+  
+  const todaysSentences = getSentencesByDay(currentDay);
+  const completedCount = Object.keys(completedSentences).length;
+  const masteredCount = Object.keys(masteredSentences).length;
 
   const handleTextToSpeech = async (text: string, isEnglish: boolean = true) => {
     try {
@@ -89,25 +35,49 @@ export default function HomeScreen() {
         rate: 0.8,
       });
     } catch (error) {
-      Alert.alert('Speech Error', 'Text-to-speech is not available on this device.');
+      console.log('TTS Error:', error);
     }
   };
 
+  const toggleSentenceCompletion = (sentenceId: number) => {
+    setCompletedSentences(prev => ({
+      ...prev,
+      [sentenceId]: !prev[sentenceId]
+    }));
+  };
 
+  const toggleSentenceMastery = (sentenceId: number) => {
+    if (!completedSentences[sentenceId]) {
+      Alert.alert('Complete First', 'Please mark the sentence as completed before mastering it.');
+      return;
+    }
+    setMasteredSentences(prev => ({
+      ...prev,
+      [sentenceId]: !prev[sentenceId]
+    }));
+  };
 
-  const getProgressStats = () => {
-    const totalAvailable = getCurrentDayLimit();
-    const completed = Object.values(progress).filter(p => p.completed).length;
-    const mastered = Object.values(progress).filter(p => p.mastered).length;
-    return { totalAvailable, completed, mastered };
+  const resetProgress = () => {
+    Alert.alert(
+      'Reset Progress',
+      'Are you sure you want to reset all progress for today?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Reset', 
+          style: 'destructive',
+          onPress: () => {
+            setCompletedSentences({});
+            setMasteredSentences({});
+          }
+        }
+      ]
+    );
   };
 
   if (!fontsLoaded) {
     return null;
   }
-
-  const todaysSentences = getTodaysSentences();
-  const { totalAvailable, completed, mastered } = getProgressStats();
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
@@ -117,125 +87,170 @@ export default function HomeScreen() {
         style={styles.header}
       >
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Telugu Daily</Text>
+          <Text style={styles.headerTitle}>Day {currentDay}</Text>
+          <TouchableOpacity style={styles.resetButton} onPress={resetProgress}>
+            <RotateCcw size={20} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
-        <Text style={styles.headerSubtitle}>Day {currentDay} • 50 New Phrases</Text>
+        <Text style={styles.headerSubtitle}>Today's Telugu Lessons</Text>
         
-        {/* Progress Ring */}
+        {/* Progress Stats */}
         <View style={styles.progressContainer}>
-          <View style={styles.progressRing}>
-            <Text style={styles.progressText}>{completed}/{totalAvailable}</Text>
-            <Text style={styles.progressLabel}>Learned</Text>
+          <View style={styles.progressStat}>
+            <Text style={styles.progressNumber}>{completedCount}</Text>
+            <Text style={styles.progressLabel}>Completed</Text>
           </View>
-          <View style={styles.masteredStats}>
-            <Text style={styles.masteredCount}>🌳 {mastered}</Text>
-            <Text style={styles.masteredLabel}>Mastered</Text>
+          <View style={styles.progressStat}>
+            <Text style={styles.progressNumber}>{masteredCount}</Text>
+            <Text style={styles.progressLabel}>Mastered</Text>
+          </View>
+          <View style={styles.progressStat}>
+            <Text style={styles.progressNumber}>{50 - completedCount}</Text>
+            <Text style={styles.progressLabel}>Remaining</Text>
           </View>
         </View>
       </LinearGradient>
 
-
-
-      {/* Progress Popup */}
-      {showProgressPopup && (
-        <View style={styles.progressPopup}>
-          <Text style={styles.popupTitle}>Your Progress</Text>
-          <View style={styles.popupStats}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{completed}</Text>
-              <Text style={styles.statLabel}>Completed</Text>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Daily Goal */}
+        <View style={[styles.goalContainer, { backgroundColor: theme.cardBackground }]}>
+          <View style={styles.goalHeader}>
+            <Target size={20} color="#F5A623" />
+            <Text style={[styles.goalTitle, { color: theme.textPrimary }]}>Daily Goal</Text>
+          </View>
+          <View style={styles.goalProgress}>
+            <View style={styles.goalBar}>
+              <View 
+                style={[
+                  styles.goalFill,
+                  { width: `${(completedCount / 50) * 100}%` }
+                ]} 
+              />
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{mastered}</Text>
-              <Text style={styles.statLabel}>Mastered</Text>
+            <Text style={[styles.goalText, { color: theme.textSecondary }]}>
+              {completedCount}/50 sentences completed
+            </Text>
+          </View>
+        </View>
+
+        {/* Sentences List */}
+        <View style={styles.sentencesContainer}>
+          {todaysSentences.map((sentence, index) => {
+            const isCompleted = completedSentences[sentence.id];
+            const isMastered = masteredSentences[sentence.id];
+            const sentenceNumber = index + 1;
+            
+            return (
+              <React.Fragment key={sentence.id}>
+                <View style={[
+                  styles.sentenceCard,
+                  { backgroundColor: theme.cardBackground },
+                  isCompleted && styles.completedCard,
+                  isMastered && styles.masteredCard
+                ]}>
+                  <View style={styles.cardHeader}>
+                    <Text style={[styles.sentenceNumber, { color: theme.accent }]}>
+                      #{sentenceNumber}
+                    </Text>
+                    <View style={styles.actionButtons}>
+                      <TouchableOpacity
+                        style={[
+                          styles.statusButton,
+                          isCompleted && styles.completedButton
+                        ]}
+                        onPress={() => toggleSentenceCompletion(sentence.id)}
+                      >
+                        {isCompleted ? (
+                          <CheckCircle size={20} color="#27AE60" />
+                        ) : (
+                          <Circle size={20} color="#8E8E93" />
+                        )}
+                      </TouchableOpacity>
+                      
+                      <TouchableOpacity
+                        style={[
+                          styles.statusButton,
+                          isMastered && styles.masteredButton
+                        ]}
+                        onPress={() => toggleSentenceMastery(sentence.id)}
+                      >
+                        <Trophy 
+                          size={18} 
+                          color={isMastered ? "#F5A623" : "#C7C7CC"} 
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  
+                  <TouchableOpacity 
+                    style={styles.teluguContainer}
+                    onPress={() => handleTextToSpeech(sentence.telugu, false)}
+                  >
+                    <Text style={styles.teluguText}>{sentence.telugu}</Text>
+                    <Play size={18} color="#2AA8A8" style={styles.playIcon} />
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={styles.englishContainer}
+                    onPress={() => handleTextToSpeech(sentence.english, true)}
+                  >
+                    <Text style={[styles.englishText, { color: theme.textSecondary }]}>
+                      {sentence.english}
+                    </Text>
+                    <Play size={14} color="#F5A623" style={styles.playIcon} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Banner Ads after 10th, 20th, 30th, 40th sentences */}
+                {(sentenceNumber === 10 || sentenceNumber === 20 || sentenceNumber === 30 || sentenceNumber === 40) && (
+                  <BannerAd 
+                    position={sentenceNumber / 10}
+                    adUnitId={undefined} // Replace with your ad unit ID
+                    appId={undefined} // Replace with your app ID
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
+
+          {/* Final Banner Ad after 50th sentence */}
+          <BannerAd 
+            position={5} 
+            adUnitId={undefined} // Replace with your ad unit ID
+            appId={undefined} // Replace with your app ID
+          />
+        </View>
+
+        {/* Daily Summary */}
+        <View style={[styles.summaryContainer, { backgroundColor: theme.cardBackground }]}>
+          <Text style={[styles.summaryTitle, { color: theme.textPrimary }]}>
+            Day {currentDay} Summary
+          </Text>
+          <View style={styles.summaryStats}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryNumber}>{completedCount}</Text>
+              <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
+                Completed
+              </Text>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{currentDay}</Text>
-              <Text style={styles.statLabel}>Days</Text>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryNumber}>{masteredCount}</Text>
+              <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
+                Mastered
+              </Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryNumber}>
+                {Math.round((completedCount / 50) * 100)}%
+              </Text>
+              <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
+                Progress
+              </Text>
             </View>
           </View>
-          <TouchableOpacity 
-            style={styles.closePopup}
-            onPress={() => setShowProgressPopup(false)}
-          >
-            <Text style={styles.closePopupText}>Close</Text>
-          </TouchableOpacity>
         </View>
-      )}
 
-      {/* Sentence Cards */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {todaysSentences.map((sentence, index) => {
-          const actualIndex = (currentDay - 1) * 50 + index;
-          const sentenceProgress = progress[actualIndex];
-          const isCompleted = sentenceProgress?.completed || false;
-          const isMastered = sentenceProgress?.mastered || false;
-          const shouldShowAd = (index + 1) % 10 === 0 && index < 40; // Show after 10th, 20th, 30th, 40th
-          
-          return (
-            <React.Fragment key={index}>
-              <View style={[
-              styles.sentenceCard,
-              isCompleted && styles.completedCard,
-              isMastered && styles.masteredCard
-            ]}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.sentenceNumber}>#{actualIndex + 1}</Text>
-                <View style={styles.statusIndicators}>
-                  {isCompleted && <Check size={16} color="#27AE60" />}
-                  {isMastered && <Text style={styles.masteredIcon}>🌳</Text>}
-                </View>
-              </View>
-              
-              <TouchableOpacity 
-                style={styles.teluguContainer}
-                onPress={() => handleTextToSpeech(sentence.telugu, false)}
-              >
-                <Text style={styles.teluguText}>{sentence.telugu}</Text>
-                <Play size={20} color="#2AA8A8" style={styles.playIcon} />
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.englishContainer}
-                onPress={() => handleTextToSpeech(sentence.english, true)}
-              >
-                <Text style={styles.englishText}>{sentence.english}</Text>
-                <Play size={16} color="#F5A623" style={styles.playIcon} />
-              </TouchableOpacity>
-              
-              <View style={styles.cardActions}>
-                <TouchableOpacity 
-                  style={[styles.actionButton, styles.knowButton, styles.fullWidthButton]}
-                  onPress={() => handleSentenceView(index)}
-                >
-                  <Check size={16} color="#27AE60" />
-                  <Text style={styles.knowButtonText}>Know It</Text>
-                </TouchableOpacity>
-              </View>
-              
-              {sentenceProgress && (
-                <Text style={styles.viewCount}>
-                  Viewed {sentenceProgress.viewCount} time{sentenceProgress.viewCount !== 1 ? 's' : ''}
-                </Text>
-              )}
-              </View>
-              
-              {/* Show banner ad after 10th, 20th, 30th, 40th sentences (positions 11, 21, 31, 41) */}
-              {((index + 1) === 10 || (index + 1) === 20 || (index + 1) === 30 || (index + 1) === 40) && (
-                <BannerAd 
-                  position={Math.floor((index + 1) / 10)}
-                  adUnitId={undefined} // TODO: Add your ad unit ID here
-                />
-              )}
-            </React.Fragment>
-          );
-        })}
-        
-        {/* Banner ad after the 50th sentence (position 51) */}
-        <BannerAd 
-          position={5} 
-          adUnitId={undefined} // TODO: Add your ad unit ID here
-        />
+        <View style={styles.bottomPadding} />
       </ScrollView>
     </View>
   );
@@ -248,23 +263,23 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 60,
-    paddingBottom: 20,
+    paddingBottom: 24,
     paddingHorizontal: 20,
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 8,
   },
   headerTitle: {
     fontSize: 24,
     fontFamily: 'Poppins-SemiBold',
     color: '#FFFFFF',
   },
-  homeButton: {
-    padding: 4,
-    borderRadius: 10,
+  resetButton: {
+    padding: 8,
+    borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   headerSubtitle: {
@@ -272,97 +287,74 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Regular',
     color: '#FFFFFF',
     opacity: 0.9,
-    marginBottom: 8,
+    marginBottom: 20,
   },
   progressContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
   },
-  progressRing: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  progressStat: {
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  progressText: {
-    fontSize: 12,
+  progressNumber: {
+    fontSize: 24,
     fontFamily: 'Poppins-SemiBold',
     color: '#FFFFFF',
   },
   progressLabel: {
-    fontSize: 8,
-    fontFamily: 'Poppins-Regular',
-    color: '#FFFFFF',
-    opacity: 0.8,
-  },
-  masteredStats: {
-    alignItems: 'center',
-  },
-  masteredCount: {
-    fontSize: 16,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#FFFFFF',
-  },
-  masteredLabel: {
-    fontSize: 8,
-    fontFamily: 'Poppins-Regular',
-    color: '#FFFFFF',
-    opacity: 0.8,
-  },
-  progressPopup: {
-    position: 'absolute',
-    top: 120,
-    right: 20,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    zIndex: 1000,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-  },
-  popupTitle: {
-    fontSize: 18,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#2C3E50',
-    marginBottom: 12,
-  },
-  popupStats: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#2AA8A8',
-  },
-  statLabel: {
     fontSize: 12,
     fontFamily: 'Poppins-Regular',
-    color: '#2C3E50',
-  },
-  closePopup: {
-    marginTop: 12,
-    padding: 8,
-    backgroundColor: '#2AA8A8',
-    borderRadius: 6,
-  },
-  closePopupText: {
     color: '#FFFFFF',
-    fontFamily: 'Poppins-Medium',
-    textAlign: 'center',
+    opacity: 0.9,
+    marginTop: 4,
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
+  },
+  goalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 20,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  goalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  goalTitle: {
+    fontSize: 16,
+    fontFamily: 'Poppins-SemiBold',
+    color: '#2C3E50',
+  },
+  goalProgress: {
+    gap: 8,
+  },
+  goalBar: {
+    height: 8,
+    backgroundColor: '#E1E1E6',
+    borderRadius: 4,
+  },
+  goalFill: {
+    height: '100%',
+    backgroundColor: '#2AA8A8',
+    borderRadius: 4,
+  },
+  goalText: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Medium',
+    color: '#8E8E93',
+  },
+  sentencesContainer: {
+    paddingBottom: 20,
   },
   sentenceCard: {
     backgroundColor: '#FFFFFF',
@@ -374,13 +366,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    borderLeftWidth: 4,
+    borderLeftColor: '#E1E1E6',
   },
   completedCard: {
-    borderLeftWidth: 4,
     borderLeftColor: '#27AE60',
+    backgroundColor: '#F0FDF4',
   },
   masteredCard: {
-    borderLeftWidth: 4,
     borderLeftColor: '#F5A623',
     backgroundColor: '#FFFEF7',
   },
@@ -392,16 +385,23 @@ const styles = StyleSheet.create({
   },
   sentenceNumber: {
     fontSize: 14,
-    fontFamily: 'Poppins-Medium',
+    fontFamily: 'Poppins-SemiBold',
     color: '#2AA8A8',
   },
-  statusIndicators: {
+  actionButtons: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+    gap: 8,
   },
-  masteredIcon: {
-    fontSize: 16,
+  statusButton: {
+    padding: 4,
+  },
+  completedButton: {
+    backgroundColor: 'rgba(39, 174, 96, 0.1)',
+    borderRadius: 12,
+  },
+  masteredButton: {
+    backgroundColor: 'rgba(245, 166, 35, 0.1)',
+    borderRadius: 12,
   },
   teluguContainer: {
     flexDirection: 'row',
@@ -410,56 +410,63 @@ const styles = StyleSheet.create({
   },
   teluguText: {
     flex: 1,
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: 'NotoSansTelugu-Regular',
     color: '#2C3E50',
-    lineHeight: 36,
+    lineHeight: 32,
   },
   playIcon: {
-    marginLeft: 8,
-    marginTop: 8,
+    marginLeft: 12,
+    marginTop: 6,
   },
   englishContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 16,
   },
   englishText: {
     flex: 1,
     fontSize: 16,
     fontFamily: 'Poppins-Regular',
-    color: '#2C3E50',
+    color: '#8E8E93',
     lineHeight: 24,
   },
-  cardActions: {
-    flexDirection: 'row',
+  summaryContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 20,
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  actionButton: {
+  summaryTitle: {
+    fontSize: 18,
+    fontFamily: 'Poppins-SemiBold',
+    color: '#2C3E50',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  summaryStats: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  summaryItem: {
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
-    gap: 6,
   },
-  fullWidthButton: {
-    flex: 1,
+  summaryNumber: {
+    fontSize: 24,
+    fontFamily: 'Poppins-SemiBold',
+    color: '#2AA8A8',
   },
-  knowButton: {
-    backgroundColor: '#F0FDF4',
-    borderWidth: 1,
-    borderColor: '#27AE60',
-  },
-  knowButtonText: {
-    color: '#27AE60',
-    fontFamily: 'Poppins-Medium',
-    fontSize: 14,
-  },
-  viewCount: {
+  summaryLabel: {
     fontSize: 12,
     fontFamily: 'Poppins-Regular',
     color: '#8E8E93',
-    textAlign: 'center',
-    marginTop: 8,
+    marginTop: 4,
+  },
+  bottomPadding: {
+    height: 40,
   },
 });
