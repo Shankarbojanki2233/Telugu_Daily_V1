@@ -7,7 +7,6 @@ import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } 
 import { NotoSansTelugu_400Regular } from '@expo-google-fonts/noto-sans-telugu';
 import { getSentencesByDay } from '@/data/sentences';
 import { useTheme } from '@/hooks/useTheme';
-import BannerAd from '@/components/BannerAd';
 
 export default function HomeScreen() {
   let [fontsLoaded] = useFonts({
@@ -18,7 +17,7 @@ export default function HomeScreen() {
   });
 
   const { theme } = useTheme();
-  const [currentDay] = useState(5);
+  const [currentDay] = useState(1);
   const [completedSentences, setCompletedSentences] = useState<{ [key: number]: boolean }>({});
   const [masteredSentences, setMasteredSentences] = useState<{ [key: number]: boolean }>({});
   
@@ -141,84 +140,69 @@ export default function HomeScreen() {
             const sentenceNumber = index + 1;
             
             return (
-              <React.Fragment key={sentence.id}>
-                <View style={[
+              <View 
+                key={sentence.id}
+                style={[
                   styles.sentenceCard,
                   { backgroundColor: theme.cardBackground },
                   isCompleted && styles.completedCard,
                   isMastered && styles.masteredCard
-                ]}>
-                  <View style={styles.cardHeader}>
-                    <Text style={[styles.sentenceNumber, { color: theme.accent }]}>
-                      #{sentenceNumber}
-                    </Text>
-                    <View style={styles.actionButtons}>
-                      <TouchableOpacity
-                        style={[
-                          styles.statusButton,
-                          isCompleted && styles.completedButton
-                        ]}
-                        onPress={() => toggleSentenceCompletion(sentence.id)}
-                      >
-                        {isCompleted ? (
-                          <CheckCircle size={20} color="#27AE60" />
-                        ) : (
-                          <Circle size={20} color="#8E8E93" />
-                        )}
-                      </TouchableOpacity>
-                      
-                      <TouchableOpacity
-                        style={[
-                          styles.statusButton,
-                          isMastered && styles.masteredButton
-                        ]}
-                        onPress={() => toggleSentenceMastery(sentence.id)}
-                      >
-                        <Trophy 
-                          size={18} 
-                          color={isMastered ? "#F5A623" : "#C7C7CC"} 
-                        />
-                      </TouchableOpacity>
-                    </View>
+                ]}
+              >
+                <View style={styles.cardHeader}>
+                  <Text style={[styles.sentenceNumber, { color: theme.accent }]}>
+                    #{sentenceNumber}
+                  </Text>
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                      style={[
+                        styles.statusButton,
+                        isCompleted && styles.completedButton
+                      ]}
+                      onPress={() => toggleSentenceCompletion(sentence.id)}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle size={20} color="#27AE60" />
+                      ) : (
+                        <Circle size={20} color="#8E8E93" />
+                      )}
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={[
+                        styles.statusButton,
+                        isMastered && styles.masteredButton
+                      ]}
+                      onPress={() => toggleSentenceMastery(sentence.id)}
+                    >
+                      <Trophy 
+                        size={18} 
+                        color={isMastered ? "#F5A623" : "#C7C7CC"} 
+                      />
+                    </TouchableOpacity>
                   </View>
-                  
-                  <TouchableOpacity 
-                    style={styles.teluguContainer}
-                    onPress={() => handleTextToSpeech(sentence.telugu, false)}
-                  >
-                    <Text style={styles.teluguText}>{sentence.telugu}</Text>
-                    <Play size={18} color="#2AA8A8" style={styles.playIcon} />
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity 
-                    style={styles.englishContainer}
-                    onPress={() => handleTextToSpeech(sentence.english, true)}
-                  >
-                    <Text style={[styles.englishText, { color: theme.textSecondary }]}>
-                      {sentence.english}
-                    </Text>
-                    <Play size={14} color="#F5A623" style={styles.playIcon} />
-                  </TouchableOpacity>
                 </View>
-
-                {/* Banner Ads after 10th, 20th, 30th, 40th sentences */}
-                {(sentenceNumber === 10 || sentenceNumber === 20 || sentenceNumber === 30 || sentenceNumber === 40) && (
-                  <BannerAd 
-                    position={sentenceNumber / 10}
-                    adUnitId={undefined} // Replace with your ad unit ID
-                    appId={undefined} // Replace with your app ID
-                  />
-                )}
-              </React.Fragment>
+                
+                <TouchableOpacity 
+                  style={styles.teluguContainer}
+                  onPress={() => handleTextToSpeech(sentence.telugu, false)}
+                >
+                  <Text style={styles.teluguText}>{sentence.telugu}</Text>
+                  <Play size={18} color="#2AA8A8" style={styles.playIcon} />
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.englishContainer}
+                  onPress={() => handleTextToSpeech(sentence.english, true)}
+                >
+                  <Text style={[styles.englishText, { color: theme.textSecondary }]}>
+                    {sentence.english}
+                  </Text>
+                  <Play size={14} color="#F5A623" style={styles.playIcon} />
+                </TouchableOpacity>
+              </View>
             );
           })}
-
-          {/* Final Banner Ad after 50th sentence */}
-          <BannerAd 
-            position={5} 
-            adUnitId={undefined} // Replace with your ad unit ID
-            appId={undefined} // Replace with your app ID
-          />
         </View>
 
         {/* Daily Summary */}
