@@ -63,7 +63,7 @@ export default function ProfileScreen() {
         </View>
         
         {/* User Info */}
-        <View style={styles.userInfo}>
+        <View style={styles.userInfo}>  
           <View style={styles.avatar}>
             <User size={32} color="#FFFFFF" />
           </View>
