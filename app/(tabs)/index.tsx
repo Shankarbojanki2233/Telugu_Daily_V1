@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Play, RotateCcw, CircleCheck as CheckCircle, Circle, Trophy, Target } from 'lucide-react-native';
+import { Play, RotateCcw, CheckCircle, Circle, Trophy, Target } from 'lucide-react-native';
 import * as Speech from 'expo-speech';
 import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 import { NotoSansTelugu_400Regular } from '@expo-google-fonts/noto-sans-telugu';
@@ -20,6 +20,7 @@ export default function HomeScreen() {
   const [currentDay] = useState(1);
   const [completedSentences, setCompletedSentences] = useState<{ [key: number]: boolean }>({});
   const [masteredSentences, setMasteredSentences] = useState<{ [key: number]: boolean }>({});
+  const [viewedCount, setViewedCount] = useState<{ [key: number]: number }>({});
   
   const todaysSentences = getSentencesByDay(currentDay);
   const completedCount = Object.keys(completedSentences).length;
@@ -38,21 +39,16 @@ export default function HomeScreen() {
     }
   };
 
-  const toggleSentenceCompletion = (sentenceId: number) => {
+  const handleKnowIt = (sentenceId: number) => {
     setCompletedSentences(prev => ({
       ...prev,
-      [sentenceId]: !prev[sentenceId]
+      [sentenceId]: true
     }));
-  };
-
-  const toggleSentenceMastery = (sentenceId: number) => {
-    if (!completedSentences[sentenceId]) {
-      Alert.alert('Complete First', 'Please mark the sentence as completed before mastering it.');
-      return;
-    }
-    setMasteredSentences(prev => ({
+    
+    // Increment viewed count
+    setViewedCount(prev => ({
       ...prev,
-      [sentenceId]: !prev[sentenceId]
+      [sentenceId]: (prev[sentenceId] || 0) + 1
     }));
   };
 
@@ -68,6 +64,7 @@ export default function HomeScreen() {
           onPress: () => {
             setCompletedSentences({});
             setMasteredSentences({});
+            setViewedCount({});
           }
         }
       ]
@@ -79,108 +76,50 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
+    <View style={styles.container}>
       {/* Header */}
       <LinearGradient
-        colors={['#2AA8A8', '#25999B']}
+        colors={['#4ECDC4', '#44B3AC']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Day {currentDay}</Text>
+          <Text style={styles.appTitle}>Telugu Daily</Text>
           <TouchableOpacity style={styles.resetButton} onPress={resetProgress}>
             <RotateCcw size={20} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
-        <Text style={styles.headerSubtitle}>Today's Telugu Lessons</Text>
+        
+        <Text style={styles.dayTitle}>Day {currentDay} • 50 New Phrases</Text>
         
         {/* Progress Stats */}
         <View style={styles.progressContainer}>
-          <View style={styles.progressStat}>
-            <Text style={styles.progressNumber}>{completedCount}</Text>
-            <Text style={styles.progressLabel}>Completed</Text>
+          <View style={styles.progressCircle}>
+            <Text style={styles.progressNumber}>{completedCount}/50</Text>
+            <Text style={styles.progressLabel}>Learned</Text>
           </View>
-          <View style={styles.progressStat}>
-            <Text style={styles.progressNumber}>{masteredCount}</Text>
-            <Text style={styles.progressLabel}>Mastered</Text>
-          </View>
-          <View style={styles.progressStat}>
-            <Text style={styles.progressNumber}>{50 - completedCount}</Text>
-            <Text style={styles.progressLabel}>Remaining</Text>
+          
+          <View style={styles.masteredContainer}>
+            <View style={styles.treeIcon}>
+              <Text style={styles.treeEmoji}>🌳</Text>
+            </View>
+            <Text style={styles.masteredNumber}>{masteredCount}</Text>
+            <Text style={styles.masteredLabel}>Mastered</Text>
           </View>
         </View>
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Daily Goal */}
-        <View style={[styles.goalContainer, { backgroundColor: theme.cardBackground }]}>
-          <View style={styles.goalHeader}>
-            <Target size={20} color="#F5A623" />
-            <Text style={[styles.goalTitle, { color: theme.textPrimary }]}>Daily Goal</Text>
-          </View>
-          <View style={styles.goalProgress}>
-            <View style={styles.goalBar}>
-              <View 
-                style={[
-                  styles.goalFill,
-                  { width: `${(completedCount / 50) * 100}%` }
-                ]} 
-              />
-            </View>
-            <Text style={[styles.goalText, { color: theme.textSecondary }]}>
-              {completedCount}/50 sentences completed
-            </Text>
-          </View>
-        </View>
-
         {/* Sentences List */}
         <View style={styles.sentencesContainer}>
           {todaysSentences.map((sentence, index) => {
             const isCompleted = completedSentences[sentence.id];
-            const isMastered = masteredSentences[sentence.id];
+            const viewCount = viewedCount[sentence.id] || 0;
             const sentenceNumber = index + 1;
             
             return (
-              <View 
-                key={sentence.id}
-                style={[
-                  styles.sentenceCard,
-                  { backgroundColor: theme.cardBackground },
-                  isCompleted && styles.completedCard,
-                  isMastered && styles.masteredCard
-                ]}
-              >
+              <View key={sentence.id} style={styles.sentenceCard}>
                 <View style={styles.cardHeader}>
-                  <Text style={[styles.sentenceNumber, { color: theme.accent }]}>
-                    #{sentenceNumber}
-                  </Text>
-                  <View style={styles.actionButtons}>
-                    <TouchableOpacity
-                      style={[
-                        styles.statusButton,
-                        isCompleted && styles.completedButton
-                      ]}
-                      onPress={() => toggleSentenceCompletion(sentence.id)}
-                    >
-                      {isCompleted ? (
-                        <CheckCircle size={20} color="#27AE60" />
-                      ) : (
-                        <Circle size={20} color="#8E8E93" />
-                      )}
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity
-                      style={[
-                        styles.statusButton,
-                        isMastered && styles.masteredButton
-                      ]}
-                      onPress={() => toggleSentenceMastery(sentence.id)}
-                    >
-                      <Trophy 
-                        size={18} 
-                        color={isMastered ? "#F5A623" : "#C7C7CC"} 
-                      />
-                    </TouchableOpacity>
-                  </View>
+                  <Text style={styles.sentenceNumber}>#{sentenceNumber}</Text>
                 </View>
                 
                 <TouchableOpacity 
@@ -188,50 +127,39 @@ export default function HomeScreen() {
                   onPress={() => handleTextToSpeech(sentence.telugu, false)}
                 >
                   <Text style={styles.teluguText}>{sentence.telugu}</Text>
-                  <Play size={18} color="#2AA8A8" style={styles.playIcon} />
+                  <Play size={20} color="#4ECDC4" style={styles.playIcon} />
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
                   style={styles.englishContainer}
                   onPress={() => handleTextToSpeech(sentence.english, true)}
                 >
-                  <Text style={[styles.englishText, { color: theme.textSecondary }]}>
-                    {sentence.english}
-                  </Text>
-                  <Play size={14} color="#F5A623" style={styles.playIcon} />
+                  <Text style={styles.englishText}>{sentence.english}</Text>
+                  <Play size={16} color="#F5A623" style={styles.playIcon} />
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.knowItButton,
+                    isCompleted && styles.knowItButtonCompleted
+                  ]}
+                  onPress={() => handleKnowIt(sentence.id)}
+                >
+                  {isCompleted && <CheckCircle size={16} color="#27AE60" style={styles.checkIcon} />}
+                  <Text style={[
+                    styles.knowItText,
+                    isCompleted && styles.knowItTextCompleted
+                  ]}>
+                    Know It
+                  </Text>
+                </TouchableOpacity>
+
+                <Text style={styles.viewedText}>
+                  Viewed {viewCount} times
+                </Text>
               </View>
             );
           })}
-        </View>
-
-        {/* Daily Summary */}
-        <View style={[styles.summaryContainer, { backgroundColor: theme.cardBackground }]}>
-          <Text style={[styles.summaryTitle, { color: theme.textPrimary }]}>
-            Day {currentDay} Summary
-          </Text>
-          <View style={styles.summaryStats}>
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryNumber}>{completedCount}</Text>
-              <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
-                Completed
-              </Text>
-            </View>
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryNumber}>{masteredCount}</Text>
-              <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
-                Mastered
-              </Text>
-            </View>
-            <View style={styles.summaryItem}>
-              <Text style={styles.summaryNumber}>
-                {Math.round((completedCount / 50) * 100)}%
-              </Text>
-              <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>
-                Progress
-              </Text>
-            </View>
-          </View>
         </View>
 
         <View style={styles.bottomPadding} />
@@ -243,11 +171,11 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#F5F5F5',
   },
   header: {
     paddingTop: 60,
-    paddingBottom: 24,
+    paddingBottom: 30,
     paddingHorizontal: 20,
   },
   headerContent: {
@@ -256,8 +184,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  headerTitle: {
-    fontSize: 24,
+  appTitle: {
+    fontSize: 28,
     fontFamily: 'Poppins-SemiBold',
     color: '#FFFFFF',
   },
@@ -266,138 +194,95 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
-  headerSubtitle: {
-    fontSize: 14,
+  dayTitle: {
+    fontSize: 16,
     fontFamily: 'Poppins-Regular',
     color: '#FFFFFF',
     opacity: 0.9,
-    marginBottom: 20,
+    marginBottom: 25,
   },
   progressContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  progressStat: {
     alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  progressCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   progressNumber: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: 'Poppins-SemiBold',
     color: '#FFFFFF',
   },
   progressLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: 'Poppins-Regular',
     color: '#FFFFFF',
     opacity: 0.9,
-    marginTop: 4,
+  },
+  masteredContainer: {
+    alignItems: 'center',
+  },
+  treeIcon: {
+    marginBottom: 8,
+  },
+  treeEmoji: {
+    fontSize: 32,
+  },
+  masteredNumber: {
+    fontSize: 32,
+    fontFamily: 'Poppins-SemiBold',
+    color: '#FFFFFF',
+  },
+  masteredLabel: {
+    fontSize: 14,
+    fontFamily: 'Poppins-Regular',
+    color: '#FFFFFF',
+    opacity: 0.9,
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
   },
-  goalContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  goalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 8,
-  },
-  goalTitle: {
-    fontSize: 16,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#2C3E50',
-  },
-  goalProgress: {
-    gap: 8,
-  },
-  goalBar: {
-    height: 8,
-    backgroundColor: '#E1E1E6',
-    borderRadius: 4,
-  },
-  goalFill: {
-    height: '100%',
-    backgroundColor: '#2AA8A8',
-    borderRadius: 4,
-  },
-  goalText: {
-    fontSize: 14,
-    fontFamily: 'Poppins-Medium',
-    color: '#8E8E93',
-  },
   sentencesContainer: {
+    paddingTop: 20,
     paddingBottom: 20,
   },
   sentenceCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
     marginVertical: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    borderLeftWidth: 4,
-    borderLeftColor: '#E1E1E6',
-  },
-  completedCard: {
-    borderLeftColor: '#27AE60',
-    backgroundColor: '#F0FDF4',
-  },
-  masteredCard: {
-    borderLeftColor: '#F5A623',
-    backgroundColor: '#FFFEF7',
+    shadowRadius: 8,
+    elevation: 4,
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sentenceNumber: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Poppins-SemiBold',
-    color: '#2AA8A8',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  statusButton: {
-    padding: 4,
-  },
-  completedButton: {
-    backgroundColor: 'rgba(39, 174, 96, 0.1)',
-    borderRadius: 12,
-  },
-  masteredButton: {
-    backgroundColor: 'rgba(245, 166, 35, 0.1)',
-    borderRadius: 12,
+    color: '#4ECDC4',
   },
   teluguContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   teluguText: {
     flex: 1,
-    fontSize: 20,
+    fontSize: 22,
     fontFamily: 'NotoSansTelugu-Regular',
     color: '#2C3E50',
-    lineHeight: 32,
+    lineHeight: 34,
   },
   playIcon: {
     marginLeft: 12,
@@ -406,49 +291,47 @@ const styles = StyleSheet.create({
   englishContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    marginBottom: 20,
   },
   englishText: {
     flex: 1,
     fontSize: 16,
     fontFamily: 'Poppins-Regular',
-    color: '#8E8E93',
+    color: '#2C3E50',
     lineHeight: 24,
   },
-  summaryContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    marginTop: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  summaryTitle: {
-    fontSize: 18,
-    fontFamily: 'Poppins-SemiBold',
-    color: '#2C3E50',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  summaryStats: {
+  knowItButton: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  summaryItem: {
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E8F8F7',
+    borderWidth: 2,
+    borderColor: '#4ECDC4',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginBottom: 12,
   },
-  summaryNumber: {
-    fontSize: 24,
+  knowItButtonCompleted: {
+    backgroundColor: '#E8F5E8',
+    borderColor: '#27AE60',
+  },
+  checkIcon: {
+    marginRight: 8,
+  },
+  knowItText: {
+    fontSize: 16,
     fontFamily: 'Poppins-SemiBold',
-    color: '#2AA8A8',
+    color: '#4ECDC4',
   },
-  summaryLabel: {
+  knowItTextCompleted: {
+    color: '#27AE60',
+  },
+  viewedText: {
     fontSize: 12,
     fontFamily: 'Poppins-Regular',
     color: '#8E8E93',
-    marginTop: 4,
+    textAlign: 'center',
   },
   bottomPadding: {
     height: 40,
