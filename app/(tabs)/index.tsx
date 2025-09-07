@@ -54,20 +54,29 @@ export default function HomeScreen() {
 
   const resetProgress = () => {
     Alert.alert(
-      'Reset Progress',
-      'Are you sure you want to reset all progress for today?',
+      '🔄 Reset Daily Progress',
+      'This will clear all your progress for today. You can always start fresh!\n\nAre you sure you want to continue?',
       [
-        { text: 'Cancel', style: 'cancel' },
         { 
-          text: 'Reset', 
+          text: 'Keep Learning', 
+          style: 'cancel',
+          onPress: () => console.log('Reset cancelled')
+        },
+        { 
+          text: '🗑️ Reset All', 
           style: 'destructive',
           onPress: () => {
             setCompletedSentences({});
             setMasteredSentences({});
             setViewedCount({});
+            Alert.alert('✅ Reset Complete', 'Your daily progress has been cleared. Ready for a fresh start!');
           }
         }
-      ]
+      ],
+      {
+        cancelable: true,
+        userInterfaceStyle: 'light'
+      }
     );
   };
 
@@ -174,7 +183,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
   header: {
-    paddingTop: 60,
+    paddingTop: 50,
     paddingBottom: 30,
     paddingHorizontal: 20,
   },
@@ -195,32 +204,33 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   dayTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Poppins-Regular',
     color: '#FFFFFF',
     opacity: 0.9,
-    marginBottom: 25,
+    marginBottom: 16,
   },
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: 8,
   },
   progressCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   progressNumber: {
-    fontSize: 20,
+    fontSize: 16,
     fontFamily: 'Poppins-SemiBold',
     color: '#FFFFFF',
   },
   progressLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Poppins-Regular',
     color: '#FFFFFF',
     opacity: 0.9,
