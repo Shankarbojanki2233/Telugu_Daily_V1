@@ -68,7 +68,7 @@ export default function PreviousScreen() {
     <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       {/* Header */}
       <LinearGradient
-        colors={['#F5A623', '#E6941F']}
+        colors={['#FF6B35', '#E55722']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
