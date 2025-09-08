@@ -7,6 +7,7 @@ import { useFonts, Poppins_400Regular, Poppins_600SemiBold } from '@expo-google-
 import { NotoSansTelugu_400Regular } from '@expo-google-fonts/noto-sans-telugu';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { ThemeProvider } from '@/hooks/useTheme';
+import mobileAds from 'react-native-google-mobile-ads';
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -21,6 +22,16 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    // Initialize Google Mobile Ads
+    mobileAds()
+      .initialize()
+      .then(adapterStatuses => {
+        console.log('Google Mobile Ads initialized:', adapterStatuses);
+      })
+      .catch(error => {
+        console.log('Google Mobile Ads initialization failed:', error);
+      });
+
     if (fontsLoaded) {
       // Start transition after fonts are loaded
       setTimeout(() => {

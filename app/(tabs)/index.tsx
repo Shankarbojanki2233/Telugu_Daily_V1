@@ -174,8 +174,8 @@ export default function HomeScreen() {
                 {shouldShowAd && (
                   <BannerAd 
                     position={sentenceNumber} 
-                    adUnitId="ca-app-pub-3940256099942544/6300978111"
-                    appId="ca-app-pub-3940256099942544~3347511713"
+                    adUnitId="ca-app-pub-8215136966042517/2425759189"
+                    appId="ca-app-pub-8215136966042517~1376950131"
                   />
                 )}
               </React.Fragment>
