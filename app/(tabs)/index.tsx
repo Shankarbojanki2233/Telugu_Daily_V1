@@ -125,7 +125,7 @@ export default function HomeScreen() {
             const isCompleted = completedSentences[sentence.id];
             const viewCount = viewedCount[sentence.id] || 0;
             const sentenceNumber = index + 1;
-            const shouldShowAd = sentenceNumber === 11 || sentenceNumber === 21 || sentenceNumber === 31 || sentenceNumber === 41;
+            const shouldShowAd = sentenceNumber === 10 || sentenceNumber === 20 || sentenceNumber === 30 || sentenceNumber === 40 || sentenceNumber === 50;
             
             return (
               <React.Fragment key={sentence.id}>
@@ -174,8 +174,8 @@ export default function HomeScreen() {
                 {shouldShowAd && (
                   <BannerAd 
                     position={sentenceNumber} 
-                    adUnitId="ca-app-pub-8215136966042517/2425759189"
-                    appId="ca-app-pub-8215136966042517~1376950131"
+                    adUnitId="YOUR_BANNER_AD_UNIT_ID_HERE"
+                    appId="YOUR_APP_ID_HERE"
                   />
                 )}
               </React.Fragment>
