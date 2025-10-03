@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+import { View, Text, StyleSheet } from 'react-native';
 
 interface BannerAdProps {
   position: number;
@@ -8,25 +7,10 @@ interface BannerAdProps {
   appId?: string;
 }
 
-export default function BannerAdComponent({ position, adUnitId, appId }: BannerAdProps) {
-  // Use test ad unit ID if no real ID provided, or in development
-  const adId = adUnitId || TestIds.BANNER;
-
+export default function BannerAdComponent({ position }: BannerAdProps) {
   return (
     <View style={styles.adContainer}>
-      <BannerAd
-        unitId={adId}
-        size={BannerAdSize.BANNER}
-        requestOptions={{
-          requestNonPersonalizedAdsOnly: true,
-        }}
-        onAdLoaded={() => {
-          console.log(`Banner ad ${position} loaded successfully`);
-        }}
-        onAdFailedToLoad={(error) => {
-          console.log(`Banner ad ${position} failed to load:`, error);
-        }}
-      />
+      <Text style={styles.adPlaceholder}>Ad Space</Text>
     </View>
   );
 }
@@ -37,5 +21,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     alignItems: 'center',
     justifyContent: 'center',
+    height: 50,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 4,
+  },
+  adPlaceholder: {
+    fontSize: 12,
+    color: '#666',
   },
 });
