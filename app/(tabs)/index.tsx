@@ -7,7 +7,6 @@ import { useFonts, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold } 
 import { NotoSansTelugu_400Regular } from '@expo-google-fonts/noto-sans-telugu';
 import { getSentencesByDay } from '@/data/sentences';
 import { useTheme } from '@/hooks/useTheme';
-import BannerAd from '@/components/BannerAd';
 
 export default function HomeScreen() {
   let [fontsLoaded] = useFonts({
@@ -125,60 +124,49 @@ export default function HomeScreen() {
             const isCompleted = completedSentences[sentence.id];
             const viewCount = viewedCount[sentence.id] || 0;
             const sentenceNumber = index + 1;
-            const shouldShowAd = sentenceNumber === 10 || sentenceNumber === 20 || sentenceNumber === 30 || sentenceNumber === 40 || sentenceNumber === 50;
-            
+
             return (
-              <React.Fragment key={sentence.id}>
-                <View style={styles.sentenceCard}>
-                  <View style={styles.cardHeader}>
-                    <Text style={styles.sentenceNumber}>#{sentenceNumber}</Text>
-                  </View>
-                  
-                  <TouchableOpacity 
-                    style={styles.teluguContainer}
-                    onPress={() => handleTextToSpeech(sentence.telugu, false)}
-                  >
-                    <Text style={styles.teluguText}>{sentence.telugu}</Text>
-                    <Play size={20} color="#4ECDC4" style={styles.playIcon} />
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity 
-                    style={styles.englishContainer}
-                    onPress={() => handleTextToSpeech(sentence.english, true)}
-                  >
-                    <Text style={styles.englishText}>{sentence.english}</Text>
-                    <Play size={16} color="#F5A623" style={styles.playIcon} />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.knowItButton,
-                      isCompleted && styles.knowItButtonCompleted
-                    ]}
-                    onPress={() => handleKnowIt(sentence.id)}
-                  >
-                    {isCompleted && <CheckCircle size={16} color="#27AE60" style={styles.checkIcon} />}
-                    <Text style={[
-                      styles.knowItText,
-                      isCompleted && styles.knowItTextCompleted
-                    ]}>
-                      Know It
-                    </Text>
-                  </TouchableOpacity>
-
-                  <Text style={styles.viewedText}>
-                    Viewed {viewCount} times
-                  </Text>
+              <View key={sentence.id} style={styles.sentenceCard}>
+                <View style={styles.cardHeader}>
+                  <Text style={styles.sentenceNumber}>#{sentenceNumber}</Text>
                 </View>
-                
-                {shouldShowAd && (
-                  <BannerAd 
-                    position={sentenceNumber} 
-                    adUnitId="YOUR_BANNER_AD_UNIT_ID_HERE"
-                    appId="YOUR_APP_ID_HERE"
-                  />
-                )}
-              </React.Fragment>
+
+                <TouchableOpacity
+                  style={styles.teluguContainer}
+                  onPress={() => handleTextToSpeech(sentence.telugu, false)}
+                >
+                  <Text style={styles.teluguText}>{sentence.telugu}</Text>
+                  <Play size={20} color="#4ECDC4" style={styles.playIcon} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.englishContainer}
+                  onPress={() => handleTextToSpeech(sentence.english, true)}
+                >
+                  <Text style={styles.englishText}>{sentence.english}</Text>
+                  <Play size={16} color="#F5A623" style={styles.playIcon} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.knowItButton,
+                    isCompleted && styles.knowItButtonCompleted
+                  ]}
+                  onPress={() => handleKnowIt(sentence.id)}
+                >
+                  {isCompleted && <CheckCircle size={16} color="#27AE60" style={styles.checkIcon} />}
+                  <Text style={[
+                    styles.knowItText,
+                    isCompleted && styles.knowItTextCompleted
+                  ]}>
+                    Know It
+                  </Text>
+                </TouchableOpacity>
+
+                <Text style={styles.viewedText}>
+                  Viewed {viewCount} times
+                </Text>
+              </View>
             );
           })}
         </View>
