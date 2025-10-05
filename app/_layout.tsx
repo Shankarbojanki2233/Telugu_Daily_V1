@@ -14,7 +14,6 @@ export default function RootLayout() {
   const [showSplash, setShowSplash] = useState(true);
   const fadeAnim = new Animated.Value(1);
   const scaleAnim = new Animated.Value(0.8);
-
   let [fontsLoaded] = useFonts({
     'Poppins-Regular': Poppins_400Regular,
     'Poppins-SemiBold': Poppins_600SemiBold,
