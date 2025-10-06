@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, Animated, StyleSheet } from 'react-native';
+import { View, Text, Animated, StyleSheet, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts, Poppins_400Regular, Poppins_600SemiBold } from '@expo-google-fonts/poppins';
 import { NotoSansTelugu_400Regular } from '@expo-google-fonts/noto-sans-telugu';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { ThemeProvider } from '@/hooks/useTheme';
-import { initializeAds } from '@/utils/adInitializer';
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -21,10 +20,16 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    // Initialize ads (platform-specific)
-    initializeAds().catch(error => {
-      console.log('Ad initialization error:', error);
-    });
+    const initAds = async () => {
+      if (Platform.OS !== 'web') {
+        const { initializeAds } = await import('@/utils/adInitializer');
+        initializeAds().catch(error => {
+          console.log('Ad initialization error:', error);
+        });
+      }
+    };
+
+    initAds();
 
     if (fontsLoaded) {
       // Start transition after fonts are loaded
@@ -49,27 +54,29 @@ export default function RootLayout() {
 
   if (!fontsLoaded || showSplash) {
     return (
-      <View style={styles.container}>
-        <StatusBar style="light" />
-        <LinearGradient
-          colors={['#2AA8A8', '#25999B']}
-          style={styles.gradient}
-        >
-          <Animated.View 
-            style={[
-              styles.splashContent,
-              {
-                opacity: fadeAnim,
-                transform: [{ scale: scaleAnim }],
-              }
-            ]}
+      <ThemeProvider>
+        <View style={styles.container}>
+          <StatusBar style="light" />
+          <LinearGradient
+            colors={['#2AA8A8', '#25999B']}
+            style={styles.gradient}
           >
-            <Text style={styles.logo}>📚</Text>
-            <Text style={styles.title}>Telugu Daily</Text>
-            <Text style={styles.tagline}>Learn Telugu, One Day at a Time</Text>
-          </Animated.View>
-        </LinearGradient>
-      </View>
+            <Animated.View
+              style={[
+                styles.splashContent,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ scale: scaleAnim }],
+                }
+              ]}
+            >
+              <Text style={styles.logo}>📚</Text>
+              <Text style={styles.title}>Telugu Daily</Text>
+              <Text style={styles.tagline}>Learn Telugu, One Day at a Time</Text>
+            </Animated.View>
+          </LinearGradient>
+        </View>
+      </ThemeProvider>
     );
   }
 
